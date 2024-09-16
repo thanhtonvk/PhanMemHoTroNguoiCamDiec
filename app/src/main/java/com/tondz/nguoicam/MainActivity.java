@@ -55,19 +55,26 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private void getObject() {
         new Thread(() -> {
             while (true) {
-                List<String> yoloLabels = nguoiMuSDK.getListResult();
+                String deafScore = nguoiMuSDK.getDeaf();
                 String emotionScore = nguoiMuSDK.getEmotion();
-                if (!yoloLabels.isEmpty() && !emotionScore.isEmpty()) {
+                if (!deafScore.isEmpty() && !emotionScore.isEmpty()) {
                     String emotion = getEmotion(emotionScore);
+                    String deaf = getDeaf(deafScore);
                     String speak = "";
-                    if (emotion.equalsIgnoreCase("sợ") && checkExist("sợ", yoloLabels)) {
-                        speak = "Sợ";
+                    if(emotion.equalsIgnoreCase("sợ") && deaf.equalsIgnoreCase("sợ")){
+                        speak = "sợ";
                     }
-                    if (emotion.equalsIgnoreCase("vui vẻ") && checkExist("rất vui được gặp bạn", yoloLabels)) {
-                        speak = "Rất vui được gặp bạn";
+                    if(emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("rất vui được gặp bạn")){
+                        speak = "rất vui được gặp bạn";
                     }
-                    if (emotion.equalsIgnoreCase("buồn") && checkExist("không thích", yoloLabels)) {
-                        speak = "Không thích";
+                    if(emotion.equalsIgnoreCase("tức giận") && deaf.equalsIgnoreCase("không thích")){
+                        speak = "không thích";
+                    }
+                    if(emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("thích")){
+                        speak = "thích";
+                    }
+                    if(emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("xin chào")){
+                        speak = "xin chào";
                     }
                     if (canPlaySound) {
                         if (!speak.isEmpty()) {
@@ -111,6 +118,20 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             }
         });
 
+    }
+
+    private String getDeaf(String scoreDeaf) {
+        String[] arr = scoreDeaf.split(",");
+        float maxScore = 0;
+        int maxIdx = 0;
+        for (int i = 0; i < arr.length; i++) {
+            float score = Float.parseFloat(arr[i]);
+            if (score > maxScore) {
+                maxScore = score;
+                maxIdx = i;
+            }
+        }
+        return Common.classNames[maxIdx];
     }
 
     private String getEmotion(String scoreEmotion) {

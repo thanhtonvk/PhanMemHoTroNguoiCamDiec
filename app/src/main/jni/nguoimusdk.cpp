@@ -25,6 +25,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "emotion_recognition.h"
+#include "deaf_recognition.h"
 
 using namespace cv;
 
@@ -35,12 +36,14 @@ using namespace cv;
 static Yolo *g_yolo = 0;
 static SCRFD *g_scrfd = 0;
 static EmotionRecognition *g_emotion = 0;
+static DeafRecognition *g_deaf = 0;
 static ncnn::Mutex lock;
 
 
 static std::vector<Object> objects;
 static std::vector<FaceObject> faceObjects;
 static std::vector<float> scoreEmotions;
+static std::vector<float> scoreDeafs;
 
 class MyNdkCamera : public NdkCameraWindow {
 public:
@@ -50,20 +53,27 @@ public:
 void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
     {
         ncnn::MutexLockGuard g(lock);
-        if (g_yolo) {
+        if (g_yolo && g_scrfd && g_deaf) {
             g_yolo->detect(rgb, objects);
-            g_yolo->draw(rgb, objects);
-        }
-        if (g_scrfd) {
             g_scrfd->detect(rgb, faceObjects);
-            if (!faceObjects.empty()) {
-                scoreEmotions.clear();
-                for (int i; i < faceObjects.size(); i++) {
-                    g_emotion->predict(rgb, faceObjects[i], scoreEmotions);
-                    g_emotion->draw(rgb, faceObjects[i], scoreEmotions);
+            scoreEmotions.clear();
+            scoreDeafs.clear();
+            for (auto &faceObject: faceObjects) {
+                g_emotion->predict(rgb, faceObject, scoreEmotions);
+            }
+            for (auto &object: objects) {
+                g_deaf->predict(rgb, object, scoreDeafs);
+            }
+            for (auto &faceObject: faceObjects) {
+                g_emotion->draw(rgb, faceObject, scoreEmotions);
+            }
+            for (auto &object: objects) {
+                if (object.label == 0) {
+                    g_deaf->draw(rgb, object, scoreDeafs);
                 }
 
             }
+            g_yolo->draw(rgb, objects);
         }
     }
 }
@@ -87,6 +97,9 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
         g_scrfd = 0;
         delete g_emotion;
         g_emotion = 0;
+
+        delete g_deaf;
+        g_deaf = 0;
     }
 
     delete g_camera;
@@ -123,6 +136,12 @@ Java_com_tondz_nguoicam_NguoiMuSDK_loadModel(JNIEnv *env, jobject thiz, jobject 
     if (!g_emotion)
         g_emotion = new EmotionRecognition;
     g_emotion->load(mgr);
+
+
+    if (!g_deaf)
+        g_deaf = new DeafRecognition;
+    g_deaf->load(mgr);
+
     return JNI_TRUE;
 }
 extern "C" jboolean
@@ -158,79 +177,17 @@ Java_com_tondz_nguoicam_NguoiMuSDK_getListResult(JNIEnv *env, jobject thiz) {
     // Get the add method of ArrayList
     jmethodID arrayListAdd = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
     for (const Object &obj: objects) {
-        std::ostringstream oss;
-        oss << obj.label;
-        std::string objName = oss.str();
-        jstring javaString = env->NewStringUTF(objName.c_str());  // Convert to jstring
-        env->CallBooleanMethod(arrayList, arrayListAdd, javaString);
-        env->DeleteLocalRef(javaString);  // Clean up local reference
+        if (obj.label == 0) {
+            std::ostringstream oss;
+            oss << obj.label;
+            std::string objName = oss.str();
+            jstring javaString = env->NewStringUTF(objName.c_str());  // Convert to jstring
+            env->CallBooleanMethod(arrayList, arrayListAdd, javaString);
+            env->DeleteLocalRef(javaString);  // Clean up local reference
+        }
     }
     objects.clear();
     return arrayList;
-}
-
-
-jobject mat_to_bitmap(JNIEnv *env, Mat &src, bool needPremultiplyAlpha) {
-    jclass java_bitmap_class = env->FindClass("android/graphics/Bitmap");
-    jclass bmpCfgCls = env->FindClass("android/graphics/Bitmap$Config");
-    jmethodID bmpClsValueOfMid = env->GetStaticMethodID(bmpCfgCls, "valueOf",
-                                                        "(Ljava/lang/String;)Landroid/graphics/Bitmap$Config;");
-    jobject jBmpCfg = env->CallStaticObjectMethod(bmpCfgCls, bmpClsValueOfMid,
-                                                  env->NewStringUTF("ARGB_8888"));
-
-    jmethodID mid = env->GetStaticMethodID(java_bitmap_class,
-                                           "createBitmap",
-                                           "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
-
-    jobject bitmap = env->CallStaticObjectMethod(java_bitmap_class,
-                                                 mid, src.cols, src.rows,
-                                                 jBmpCfg);
-
-    AndroidBitmapInfo info;
-    void *pixels = nullptr;
-
-
-    // Validate
-    if (AndroidBitmap_getInfo(env, bitmap, &info) < 0) {
-        std::runtime_error("Failed to get Bitmap info.");
-    }
-    if (src.type() != CV_8UC1 && src.type() != CV_8UC3 && src.type() != CV_8UC4) {
-        std::runtime_error("Unsupported cv::Mat type.");
-    }
-    if (AndroidBitmap_lockPixels(env, bitmap, &pixels) < 0) {
-        std::runtime_error("Failed to lock Bitmap pixels.");
-    }
-    if (!pixels) {
-        std::runtime_error("Bitmap pixels are null.");
-    }
-
-    // Convert cv::Mat to the Bitmap format
-    if (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {
-        Mat tmp(info.height, info.width, CV_8UC4, pixels);
-        if (src.type() == CV_8UC1) {
-            cvtColor(src, tmp, COLOR_GRAY2RGBA);
-        } else if (src.type() == CV_8UC3) {
-            cvtColor(src, tmp, COLOR_RGB2RGBA);
-        } else if (src.type() == CV_8UC4) {
-            if (needPremultiplyAlpha) {
-                cvtColor(src, tmp, COLOR_RGBA2mRGBA);
-            } else {
-                src.copyTo(tmp);
-            }
-        }
-    } else if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
-        Mat tmp(info.height, info.width, CV_8UC2, pixels);
-        if (src.type() == CV_8UC1) {
-            cvtColor(src, tmp, COLOR_GRAY2BGR565);
-        } else if (src.type() == CV_8UC3) {
-            cvtColor(src, tmp, COLOR_RGB2BGR565);
-        } else if (src.type() == CV_8UC4) {
-            cvtColor(src, tmp, COLOR_RGBA2BGR565);
-        }
-    }
-
-    AndroidBitmap_unlockPixels(env, bitmap);
-    return bitmap;
 }
 
 extern "C"
@@ -250,6 +207,27 @@ Java_com_tondz_nguoicam_NguoiMuSDK_getEmotion(JNIEnv *env, jobject thiz) {
         // Convert the stream to a string
         std::string embeddingStr = oss.str();
         scoreEmotions.clear();
+        return env->NewStringUTF(embeddingStr.c_str());
+    }
+    return env->NewStringUTF("");
+}
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_tondz_nguoicam_NguoiMuSDK_getDeaf(JNIEnv *env, jobject thiz) {
+    if (!scoreDeafs.empty()) {
+        std::ostringstream oss;
+
+        // Convert each element to string and add it to the stream
+        for (size_t i = 0; i < scoreDeafs.size(); ++i) {
+            if (i != 0) {
+                oss << ",";  // Add a separator between elements
+            }
+            oss << scoreDeafs[i];
+        }
+
+        // Convert the stream to a string
+        std::string embeddingStr = oss.str();
+        scoreDeafs.clear();
         return env->NewStringUTF(embeddingStr.c_str());
     }
     return env->NewStringUTF("");

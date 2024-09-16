@@ -18,7 +18,7 @@ public class NguoiMuSDK {
     public native List<String> getListResult();
 
     public native String getEmotion();
-
+    public native String getDeaf();
     static {
         System.loadLibrary("nguoimusdk");
     }

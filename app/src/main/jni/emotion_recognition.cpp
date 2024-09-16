@@ -9,17 +9,7 @@
 #include "cpu.h"
 #include <opencv2/opencv.hpp>
 
-int getMax(std::vector<float> &result) {
-    int idx = 0;
-    float scoreMax = 0;
-    for (int i = 0; i < result.size(); i++) {
-        if (scoreMax < result[i]) {
-            idx = i;
-            scoreMax = result[i];
-        }
-    }
-    return idx;
-}
+
 
 cv::Rect resizeImage(FaceObject faceobject) {
     // Get the original coordinates
@@ -94,7 +84,14 @@ int EmotionRecognition::draw(cv::Mat &rgb, FaceObject &faceobject, std::vector<f
             "tuc gian", "ghe tom", "so hai", "vui ve",
             "buon", "bat ngo", "tu nhien", "khinh miet"
     };
-    int index = getMax(result);
+    int index = 0;
+    float scoreMax = 0;
+    for (int i = 0; i < result.size(); i++) {
+        if (scoreMax < result[i]) {
+            index = i;
+            scoreMax = result[i];
+        }
+    }
     __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "openCamera %d", index);
     static const unsigned char colors[19][3] = {
             {54,  67,  244},
