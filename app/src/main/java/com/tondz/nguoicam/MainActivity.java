@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA);
+
 
         init();
         onClick();
@@ -61,19 +61,19 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     String emotion = getEmotion(emotionScore);
                     String deaf = getDeaf(deafScore);
                     String speak = "";
-                    if(emotion.equalsIgnoreCase("sợ") && deaf.equalsIgnoreCase("sợ")){
+                    if (emotion.equalsIgnoreCase("sợ") && deaf.equalsIgnoreCase("sợ")) {
                         speak = "sợ";
                     }
-                    if(emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("rất vui được gặp bạn")){
+                    if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("rất vui được gặp bạn")) {
                         speak = "rất vui được gặp bạn";
                     }
-                    if(emotion.equalsIgnoreCase("tức giận") && deaf.equalsIgnoreCase("không thích")){
+                    if (emotion.equalsIgnoreCase("tức giận") && deaf.equalsIgnoreCase("không thích")) {
                         speak = "không thích";
                     }
-                    if(emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("thích")){
+                    if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("thích")) {
                         speak = "thích";
                     }
-                    if(emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("xin chào")){
+                    if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("xin chào")) {
                         speak = "xin chào";
                     }
                     if (canPlaySound) {
