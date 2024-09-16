@@ -92,7 +92,6 @@ int EmotionRecognition::draw(cv::Mat &rgb, FaceObject &faceobject, std::vector<f
             scoreMax = result[i];
         }
     }
-    __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "openCamera %d", index);
     static const unsigned char colors[19][3] = {
             {54,  67,  244},
             {99,  30,  233},

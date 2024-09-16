@@ -58,12 +58,15 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
             g_scrfd->detect(rgb, faceObjects);
             scoreEmotions.clear();
             scoreDeafs.clear();
-            for (auto &faceObject: faceObjects) {
-                g_emotion->predict(rgb, faceObject, scoreEmotions);
+            if (!faceObjects.empty()) {
+                g_emotion->predict(rgb, faceObjects[0], scoreEmotions);
             }
-            for (auto &object: objects) {
-                g_deaf->predict(rgb, object, scoreDeafs);
+
+            if (!objects.empty()) {
+                g_deaf->predict(rgb, objects[0], scoreDeafs);
             }
+
+
             for (auto &faceObject: faceObjects) {
                 g_emotion->draw(rgb, faceObject, scoreEmotions);
             }
@@ -71,7 +74,6 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
                 if (object.label == 0) {
                     g_deaf->draw(rgb, object, scoreDeafs);
                 }
-
             }
             g_yolo->draw(rgb, objects);
         }
