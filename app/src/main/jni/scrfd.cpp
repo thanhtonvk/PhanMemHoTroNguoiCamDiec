@@ -228,8 +228,8 @@ int SCRFD::load(const char* modeltype, bool use_gpu)
 
     char parampath[256];
     char modelpath[256];
-    sprintf(parampath, "scrfd_2.5g_kps-opt2.param", modeltype);
-    sprintf(modelpath, "scrfd_2.5g_kps-opt2.bin", modeltype);
+    sprintf(parampath, "scrfd.param", modeltype);
+    sprintf(modelpath, "scrfd.bin", modeltype);
 
     scrfd.load_param(parampath);
     scrfd.load_model(modelpath);
@@ -254,8 +254,8 @@ int SCRFD::load(AAssetManager* mgr, const char* modeltype, bool use_gpu)
 
     char parampath[256];
     char modelpath[256];
-    sprintf(parampath, "scrfd_2.5g_kps-opt2.param", modeltype);
-    sprintf(modelpath, "scrfd_2.5g_kps-opt2.bin", modeltype);
+    sprintf(parampath, "scrfd.param", modeltype);
+    sprintf(modelpath, "scrfd.bin", modeltype);
 
     scrfd.load_param(mgr, parampath);
     scrfd.load_model(mgr, modelpath);
