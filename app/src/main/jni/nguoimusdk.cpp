@@ -93,8 +93,10 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
         ncnn::MutexLockGuard g(lock);
         delete g_yolo;
         g_yolo = 0;
+
         delete g_scrfd;
         g_scrfd = 0;
+
         delete g_emotion;
         g_emotion = 0;
 

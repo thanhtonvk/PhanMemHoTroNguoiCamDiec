@@ -14,18 +14,20 @@ import androidx.core.content.ContextCompat;
 public class StartActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_CODE = 100;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_start);
         checkCameraPermission();
-        ActivityCompat.requestPermissions(this,
-                new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
-                561);
+        findViewById(R.id.btnStart).setOnClickListener(v -> {
+
+        });
     }
+
     private void checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA)
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED) {
             // Quyền đã được cấp, chuyển sang MainActivity
             openMainActivity();

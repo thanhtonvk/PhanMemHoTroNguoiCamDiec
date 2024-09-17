@@ -84,53 +84,53 @@ int DeafRecognition::draw(cv::Mat &rgb, Object &object, std::vector<float> &resu
             {158, 158, 158},
             {139, 125, 96}
     };
-    int index = 0;
-    float scoreMax = 0;
-    for (int i = 0; i < result.size(); i++) {
-        if (scoreMax < result[i]) {
-            index = i;
-            scoreMax = result[i];
+    if (!result.empty()) {
+        int index = 0;
+        float scoreMax = 0;
+        for (int i = 0; i < result.size(); i++) {
+            if (scoreMax < result[i]) {
+                index = i;
+                scoreMax = result[i];
+            }
+        }
+        if (result[index] >= 0.98) {
+            int color_index = 0;
+            const Object &obj = object;
+            cv::Rect newRect = obj.rect;
+            const unsigned char *color = colors[color_index % 19];
+            color_index++;
+
+            cv::Scalar cc(color[0], color[1], color[2]);
+
+            cv::rectangle(rgb, newRect, cc, 2);
+
+            char text[256];
+            sprintf(text, "%s %.1f%%", class_names[index], result[index] * 100);
+
+            int baseLine = 0;
+            cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1,
+                                                  &baseLine);
+
+            int x = newRect.x;
+            int y = newRect.y - label_size.height - baseLine;
+            if (y < 0)
+                y = 0;
+            if (x + label_size.width > rgb.cols)
+                x = rgb.cols - label_size.width;
+
+            cv::rectangle(rgb, cv::Rect(cv::Point(x, y),
+                                        cv::Size(label_size.width, label_size.height + baseLine)),
+                          cc,
+                          -1);
+
+            cv::Scalar textcc = (color[0] + color[1] + color[2] >= 381) ? cv::Scalar(0, 0, 0)
+                                                                        : cv::Scalar(255, 255, 255);
+
+            cv::putText(rgb, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        textcc, 1);
         }
     }
-    if (result[index] > 0.98) {
 
-
-        int color_index = 0;
-
-
-        const Object &obj = object;
-        cv::Rect newRect = obj.rect;
-
-
-        const unsigned char *color = colors[color_index % 19];
-        color_index++;
-
-        cv::Scalar cc(color[0], color[1], color[2]);
-
-        cv::rectangle(rgb, newRect, cc, 2);
-
-        char text[256];
-        sprintf(text, "%s %.1f%%", class_names[index], result[index] * 100);
-
-        int baseLine = 0;
-        cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-
-        int x = newRect.x;
-        int y = newRect.y - label_size.height - baseLine;
-        if (y < 0)
-            y = 0;
-        if (x + label_size.width > rgb.cols)
-            x = rgb.cols - label_size.width;
-
-        cv::rectangle(rgb, cv::Rect(cv::Point(x, y),
-                                    cv::Size(label_size.width, label_size.height + baseLine)), cc,
-                      -1);
-
-        cv::Scalar textcc = (color[0] + color[1] + color[2] >= 381) ? cv::Scalar(0, 0, 0)
-                                                                    : cv::Scalar(255, 255, 255);
-
-        cv::putText(rgb, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 0.5,
-                    textcc, 1);
-    }
     return 0;
 }

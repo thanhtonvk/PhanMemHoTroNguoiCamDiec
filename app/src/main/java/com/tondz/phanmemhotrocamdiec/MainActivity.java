@@ -45,6 +45,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 canPlaySound = true;
             }
         };
+//        try {
+//            Thread.sleep(3000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         getObject();
     }
 
