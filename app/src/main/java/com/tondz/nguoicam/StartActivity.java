@@ -23,6 +23,9 @@ public class StartActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_start);
         checkCameraPermission();
+        ActivityCompat.requestPermissions(this,
+                new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                561);
     }
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA)

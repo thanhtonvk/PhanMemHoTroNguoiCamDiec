@@ -65,17 +65,18 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
             if (!objects.empty()) {
                 g_deaf->predict(rgb, objects[0], scoreDeafs);
             }
-
-
-            for (auto &faceObject: faceObjects) {
-                g_emotion->draw(rgb, faceObject, scoreEmotions);
-            }
-            for (auto &object: objects) {
-                if (object.label == 0) {
-                    g_deaf->draw(rgb, object, scoreDeafs);
+            if (!faceObjects.empty()) {
+                for (auto &faceObject: faceObjects) {
+                    g_emotion->draw(rgb, faceObject, scoreEmotions);
                 }
             }
-            g_yolo->draw(rgb, objects);
+            if (!objects.empty()) {
+                for (auto &object: objects) {
+                    g_deaf->draw(rgb, object, scoreDeafs);
+                }
+                g_yolo->draw(rgb, objects);
+            }
+
         }
     }
 }
