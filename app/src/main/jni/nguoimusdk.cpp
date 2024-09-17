@@ -53,7 +53,7 @@ public:
 void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
     {
         ncnn::MutexLockGuard g(lock);
-        if (g_yolo && g_scrfd && g_deaf) {
+        if (g_yolo && g_scrfd && g_deaf && g_emotion) {
             g_yolo->detect(rgb, objects);
             g_scrfd->detect(rgb, faceObjects);
             scoreEmotions.clear();
