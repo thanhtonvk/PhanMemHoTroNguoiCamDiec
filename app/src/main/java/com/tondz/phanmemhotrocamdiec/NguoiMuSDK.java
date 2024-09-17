@@ -14,8 +14,6 @@ public class NguoiMuSDK {
 
     public native boolean setOutputWindow(Surface surface);
 
-    public native List<String> getListResult();
-
     public native String getEmotion();
     public native String getDeaf();
     static {

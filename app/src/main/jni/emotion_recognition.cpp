@@ -62,7 +62,7 @@ int EmotionRecognition::predict(cv::Mat src, FaceObject &faceobject,
         ncnn::Mat in_net = ncnn::Mat::from_pixels_resize(croppedImage.clone().data,
                                                          ncnn::Mat::PIXEL_RGB, croppedImage.cols,
                                                          croppedImage.rows,
-                                                         128, 128);
+                                                         112, 112);
         float norm[3] = {1 / 127.5f, 1 / 127.5f, 1 / 127.5f};
         float mean[3] = {127.5f, 127.5f, 127.5f};
         in_net.substract_mean_normalize(mean, norm);
@@ -92,26 +92,8 @@ int EmotionRecognition::draw(cv::Mat &rgb, FaceObject &faceobject, std::vector<f
             scoreMax = result[i];
         }
     }
-    static const unsigned char colors[19][3] = {
+    static const unsigned char colors[1][3] = {
             {54,  67,  244},
-            {99,  30,  233},
-            {176, 39,  156},
-            {183, 58,  103},
-            {181, 81,  63},
-            {243, 150, 33},
-            {244, 169, 3},
-            {212, 188, 0},
-            {136, 150, 0},
-            {80,  175, 76},
-            {74,  195, 139},
-            {57,  220, 205},
-            {59,  235, 255},
-            {7,   193, 255},
-            {0,   152, 255},
-            {34,  87,  255},
-            {72,  85,  121},
-            {158, 158, 158},
-            {139, 125, 96}
     };
 
     int color_index = 0;
@@ -121,7 +103,7 @@ int EmotionRecognition::draw(cv::Mat &rgb, FaceObject &faceobject, std::vector<f
     cv::Rect newRect = resizeImage(obj);
 
 
-    const unsigned char *color = colors[color_index % 19];
+    const unsigned char *color = colors[0];
     color_index++;
 
     cv::Scalar cc(color[0], color[1], color[2]);

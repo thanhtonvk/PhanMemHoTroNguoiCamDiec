@@ -33,10 +33,10 @@ using namespace cv;
 #include <arm_neon.h>
 #endif // __ARM_NEON
 
-static Yolo *g_yolo = 0;
-static SCRFD *g_scrfd = 0;
-static EmotionRecognition *g_emotion = 0;
-static DeafRecognition *g_deaf = 0;
+static Yolo *g_yolo = nullptr;
+static SCRFD *g_scrfd = nullptr;
+static EmotionRecognition *g_emotion = nullptr;
+static DeafRecognition *g_deaf = nullptr;
 static ncnn::Mutex lock;
 
 
@@ -92,16 +92,16 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
     {
         ncnn::MutexLockGuard g(lock);
         delete g_yolo;
-        g_yolo = 0;
+        g_yolo = nullptr;
 
         delete g_scrfd;
-        g_scrfd = 0;
+        g_scrfd = nullptr;
 
         delete g_emotion;
-        g_emotion = 0;
+        g_emotion = nullptr;
 
         delete g_deaf;
-        g_deaf = 0;
+        g_deaf = nullptr;
     }
 
     delete g_camera;
@@ -130,20 +130,26 @@ Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_loadModel(JNIEnv *env, jobject thi
     int target_size = 640;
     if (!g_yolo) {
         g_yolo = new Yolo;
+        g_yolo->load(mgr, modeltype, target_size, mean_vals[0],
+                     norm_vals[0], false);
     }
-    g_yolo->load(mgr, modeltype, target_size, mean_vals[0],
-                 norm_vals[0], false);
-    if (!g_scrfd)
+
+    if (!g_scrfd) {
         g_scrfd = new SCRFD;
-    g_scrfd->load(mgr, modeltype, false);
-    if (!g_emotion)
+        g_scrfd->load(mgr, modeltype, false);
+    }
+
+    if (!g_emotion) {
         g_emotion = new EmotionRecognition;
-    g_emotion->load(mgr);
+        g_emotion->load(mgr);
+    }
 
 
-    if (!g_deaf)
+    if (!g_deaf) {
         g_deaf = new DeafRecognition;
-    g_deaf->load(mgr);
+        g_deaf->load(mgr);
+    }
+
 
     return JNI_TRUE;
 }
@@ -171,27 +177,6 @@ Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_setOutputWindow(JNIEnv *env, jobje
     return JNI_TRUE;
 }
 
-}
-extern "C" jobject
-Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_getListResult(JNIEnv *env, jobject thiz) {
-    jclass arrayListClass = env->FindClass("java/util/ArrayList");
-    jmethodID arrayListConstructor = env->GetMethodID(arrayListClass, "<init>", "()V");
-    jobject arrayList = env->NewObject(arrayListClass, arrayListConstructor);
-
-    // Get the add method of ArrayList
-    jmethodID arrayListAdd = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
-    for (const Object &obj: objects) {
-        if (obj.label == 0) {
-            std::ostringstream oss;
-            oss << obj.label;
-            std::string objName = oss.str();
-            jstring javaString = env->NewStringUTF(objName.c_str());  // Convert to jstring
-            env->CallBooleanMethod(arrayList, arrayListAdd, javaString);
-            env->DeleteLocalRef(javaString);  // Clean up local reference
-        }
-    }
-    objects.clear();
-    return arrayList;
 }
 
 extern "C"

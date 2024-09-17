@@ -14,8 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 
 import com.tondz.phanmemhotrocamdiec.databinding.ActivityMainBinding;
-
-import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
@@ -45,11 +43,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 canPlaySound = true;
             }
         };
-//        try {
-//            Thread.sleep(3000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
         getObject();
     }
 
