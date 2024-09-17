@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.tondz.nguoicam"
+    namespace = "com.tondz.phanmemhotrocamdiec"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.tondz.nguoicam"
+        applicationId = "com.tondz.phanmemhotrocamdiec"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
@@ -25,15 +25,15 @@ android {
             )
         }
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
     externalNativeBuild {
         cmake {
             version = "3.10.2";
             path = file("src/main/jni/CMakeLists.txt");
         }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
     }
     buildFeatures {
         viewBinding = true;

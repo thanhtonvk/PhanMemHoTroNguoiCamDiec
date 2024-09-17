@@ -1,4 +1,4 @@
-package com.tondz.nguoicam;
+package com.tondz.phanmemhotrocamdiec;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,9 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 public class StartActivity extends AppCompatActivity {
 

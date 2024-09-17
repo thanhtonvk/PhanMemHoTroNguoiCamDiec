@@ -1,8 +1,5 @@
-package com.tondz.nguoicam;
+package com.tondz.phanmemhotrocamdiec;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,10 +11,9 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
-import com.tondz.nguoicam.databinding.ActivityMainBinding;
+
+import com.tondz.phanmemhotrocamdiec.databinding.ActivityMainBinding;
 
 import java.util.List;
 import java.util.Locale;
@@ -80,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                         if (!speak.isEmpty()) {
                             speakVoice(speak);
                             canPlaySound = false;
-                            handler.postDelayed(runnable, 5000);
+                            handler.postDelayed(runnable, 3000);
                         }
 
                     }
@@ -93,18 +89,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 }
             }
         }).start();
-    }
-
-    private boolean checkExist(String keyword, List<String> yoloLabels) {
-        boolean isExitst = false;
-        for (String label : yoloLabels
-        ) {
-            int labelId = Integer.parseInt(label);
-            if (keyword.equalsIgnoreCase(Common.classNames[labelId])) {
-                isExitst = true;
-            }
-        }
-        return isExitst;
     }
 
     private void onClick() {
@@ -187,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-
+        nguoiMuSDK.closeCamera();
     }
 
     @Override
@@ -199,6 +183,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     protected void onPause() {
         super.onPause();
+        nguoiMuSDK.closeCamera();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         nguoiMuSDK.closeCamera();
     }
 }

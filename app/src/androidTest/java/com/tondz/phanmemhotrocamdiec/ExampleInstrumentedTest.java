@@ -1,4 +1,4 @@
-package com.tondz.nguoicam;
+package com.tondz.phanmemhotrocamdiec;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.tondz.nguoicam", appContext.getPackageName());
+        assertEquals("com.tondz.phanmemhotrocamdiec", appContext.getPackageName());
     }
 }

@@ -71,9 +71,7 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
                 g_emotion->draw(rgb, faceObject, scoreEmotions);
             }
             for (auto &object: objects) {
-                if (object.label == 0) {
-                    g_deaf->draw(rgb, object, scoreDeafs);
-                }
+                g_deaf->draw(rgb, object, scoreDeafs);
             }
             g_yolo->draw(rgb, objects);
         }
@@ -110,7 +108,8 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
 
 
 extern "C" jboolean
-Java_com_tondz_nguoicam_NguoiMuSDK_loadModel(JNIEnv *env, jobject thiz, jobject assetManager) {
+Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_loadModel(JNIEnv *env, jobject thiz,
+                                                        jobject assetManager) {
     AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
     ncnn::MutexLockGuard g(lock);
     const char *modeltype = "s";
@@ -147,7 +146,7 @@ Java_com_tondz_nguoicam_NguoiMuSDK_loadModel(JNIEnv *env, jobject thiz, jobject 
     return JNI_TRUE;
 }
 extern "C" jboolean
-Java_com_tondz_nguoicam_NguoiMuSDK_openCamera(JNIEnv *env, jobject thiz, jint facing) {
+Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_openCamera(JNIEnv *env, jobject thiz, jint facing) {
     if (facing < 0 || facing > 1)
         return JNI_FALSE;
     g_camera->open((int) facing);
@@ -156,14 +155,15 @@ Java_com_tondz_nguoicam_NguoiMuSDK_openCamera(JNIEnv *env, jobject thiz, jint fa
 }
 
 extern "C" jboolean
-Java_com_tondz_nguoicam_NguoiMuSDK_closeCamera(JNIEnv *env, jobject thiz) {
+Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_closeCamera(JNIEnv *env, jobject thiz) {
     g_camera->close();
 
     return JNI_TRUE;
 }
 
 extern "C" jboolean
-Java_com_tondz_nguoicam_NguoiMuSDK_setOutputWindow(JNIEnv *env, jobject thiz, jobject surface) {
+Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_setOutputWindow(JNIEnv *env, jobject thiz,
+                                                              jobject surface) {
     ANativeWindow *win = ANativeWindow_fromSurface(env, surface);
     g_camera->set_window(win);
     return JNI_TRUE;
@@ -171,7 +171,7 @@ Java_com_tondz_nguoicam_NguoiMuSDK_setOutputWindow(JNIEnv *env, jobject thiz, jo
 
 }
 extern "C" jobject
-Java_com_tondz_nguoicam_NguoiMuSDK_getListResult(JNIEnv *env, jobject thiz) {
+Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_getListResult(JNIEnv *env, jobject thiz) {
     jclass arrayListClass = env->FindClass("java/util/ArrayList");
     jmethodID arrayListConstructor = env->GetMethodID(arrayListClass, "<init>", "()V");
     jobject arrayList = env->NewObject(arrayListClass, arrayListConstructor);
@@ -194,7 +194,7 @@ Java_com_tondz_nguoicam_NguoiMuSDK_getListResult(JNIEnv *env, jobject thiz) {
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_tondz_nguoicam_NguoiMuSDK_getEmotion(JNIEnv *env, jobject thiz) {
+Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_getEmotion(JNIEnv *env, jobject thiz) {
     if (!scoreEmotions.empty()) {
         std::ostringstream oss;
 
@@ -215,7 +215,7 @@ Java_com_tondz_nguoicam_NguoiMuSDK_getEmotion(JNIEnv *env, jobject thiz) {
 }
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_tondz_nguoicam_NguoiMuSDK_getDeaf(JNIEnv *env, jobject thiz) {
+Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_getDeaf(JNIEnv *env, jobject thiz) {
     if (!scoreDeafs.empty()) {
         std::ostringstream oss;
 

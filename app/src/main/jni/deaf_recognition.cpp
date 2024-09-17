@@ -92,7 +92,7 @@ int DeafRecognition::draw(cv::Mat &rgb, Object &object, std::vector<float> &resu
             scoreMax = result[i];
         }
     }
-    if (result[index] > 0.99) {
+    if (result[index] > 0.98) {
 
 
         int color_index = 0;

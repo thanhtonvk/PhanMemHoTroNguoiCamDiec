@@ -1,7 +1,6 @@
-package com.tondz.nguoicam;
+package com.tondz.phanmemhotrocamdiec;
 
 import android.content.res.AssetManager;
-import android.graphics.Bitmap;
 import android.view.Surface;
 
 import java.util.List;
