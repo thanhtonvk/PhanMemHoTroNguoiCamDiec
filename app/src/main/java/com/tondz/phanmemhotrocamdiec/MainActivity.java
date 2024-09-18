@@ -1,6 +1,7 @@
 package com.tondz.phanmemhotrocamdiec;
 
 import android.graphics.PixelFormat;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 
 import com.tondz.phanmemhotrocamdiec.databinding.ActivityMainBinding;
+
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
@@ -25,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private boolean canPlaySound = true;
     Handler handler;
     Runnable runnable;
+    MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,25 +57,41 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 if (!deafScore.isEmpty() && !emotionScore.isEmpty()) {
                     String emotion = getEmotion(emotionScore);
                     String deaf = getDeaf(deafScore);
-                    String speak = "";
+                    int source = 0;
                     if (emotion.equalsIgnoreCase("sợ") && deaf.equalsIgnoreCase("sợ")) {
-                        speak = "sợ";
+                        source = R.raw.so;
                     }
                     if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("rất vui được gặp bạn")) {
-                        speak = "rất vui được gặp bạn";
+                        source = R.raw.rat_vui_duoc_gap_ban;
                     }
                     if (emotion.equalsIgnoreCase("tức giận") && deaf.equalsIgnoreCase("không thích")) {
-                        speak = "không thích";
+                        source = R.raw.khong_thich;
+                    }
+                    if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("cảm ơn")) {
+                        source = R.raw.cam_on;
+                    }
+                    if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("khoẻ")) {
+                        source = R.raw.khoe;
                     }
                     if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("thích")) {
-                        speak = "thích";
+                        source = R.raw.thich;
+                    }
+                    if (emotion.equalsIgnoreCase("buồn") && deaf.equalsIgnoreCase("xin lỗi")) {
+                        source = R.raw.xin_loi;
+                    }
+                    if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("hẹn gặp lại")) {
+                        source = R.raw.hen_gap_lai;
                     }
                     if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("xin chào")) {
-                        speak = "xin chào";
+                        source = R.raw.xin_chao;
+                    }
+                    if (emotion.equalsIgnoreCase("buồn") && deaf.equalsIgnoreCase("tạm biệt")) {
+                        source = R.raw.tam_biet;
                     }
                     if (canPlaySound) {
-                        if (!speak.isEmpty()) {
-                            speakVoice(speak);
+                        if (source != 0) {
+                            mediaPlayer = MediaPlayer.create(this, source);
+                            mediaPlayer.start();
                             canPlaySound = false;
                             handler.postDelayed(runnable, 3000);
                         }
@@ -188,5 +207,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     protected void onDestroy() {
         super.onDestroy();
         nguoiMuSDK.closeCamera();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 }

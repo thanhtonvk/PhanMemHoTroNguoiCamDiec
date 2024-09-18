@@ -58,7 +58,7 @@ int DeafRecognition::draw(cv::Mat &rgb, Object &object, std::vector<float> &resu
         int index = std::distance(result.begin(), std::max_element(result.begin(), result.end()));
         float scoreMax = result[index];
 
-        if (scoreMax >= 0.98) {
+        if (scoreMax >= 0.9) {
             const Object &obj = object;
             cv::Rect newRect = obj.rect;
             const unsigned char *color = colors[0];
