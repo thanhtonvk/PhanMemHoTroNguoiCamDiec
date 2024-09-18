@@ -27,9 +27,10 @@ int DeafRecognition::predict(cv::Mat src, Object &object, std::vector<float> &re
         newRect.x + newRect.width <= src.cols &&
         newRect.y + newRect.height <= src.rows) {
         cv::Mat croppedImage = src(newRect);
-        ncnn::Mat in_net = ncnn::Mat::from_pixels_resize(croppedImage.data, ncnn::Mat::PIXEL_RGB,
-                                                         croppedImage.cols, croppedImage.rows, 224,
-                                                         224);
+        ncnn::Mat in_net = ncnn::Mat::from_pixels_resize(croppedImage.clone().data,
+                                                         ncnn::Mat::PIXEL_RGB,
+                                                         croppedImage.cols, croppedImage.rows, 128,
+                                                         128);
         float norm[3] = {1 / 127.5f, 1 / 127.5f, 1 / 127.5f};
         float mean[3] = {127.5f, 127.5f, 127.5f};
         in_net.substract_mean_normalize(mean, norm);

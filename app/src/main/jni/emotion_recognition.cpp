@@ -62,7 +62,7 @@ int EmotionRecognition::predict(cv::Mat src, FaceObject &faceobject,
         ncnn::Mat in_net = ncnn::Mat::from_pixels_resize(croppedImage.clone().data,
                                                          ncnn::Mat::PIXEL_RGB, croppedImage.cols,
                                                          croppedImage.rows,
-                                                         112, 112);
+                                                         128, 128);
         float norm[3] = {1 / 127.5f, 1 / 127.5f, 1 / 127.5f};
         float mean[3] = {127.5f, 127.5f, 127.5f};
         in_net.substract_mean_normalize(mean, norm);
