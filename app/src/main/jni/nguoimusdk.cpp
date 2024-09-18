@@ -1,3 +1,17 @@
+// Tencent is pleased to support the open source community by making ncnn available.
+//
+// Copyright (C) 2021 THL A29 Limited, a Tencent company. All rights reserved.
+//
+// Licensed under the BSD 3-Clause License (the "License"); you may not use this file except
+// in compliance with the License. You may obtain a copy of the License at
+//
+// https://opensource.org/licenses/BSD-3-Clause
+//
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
+
 #include <android/asset_manager_jni.h>
 #include <android/native_window_jni.h>
 #include <android/native_window.h>
@@ -16,7 +30,8 @@
 
 #include "ndkcamera.h"
 #include "scrfd.h"
-
+#include "emotion_recognition.h"
+#include "deaf_recognition.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -24,8 +39,6 @@
 #include <android/bitmap.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include "emotion_recognition.h"
-#include "deaf_recognition.h"
 
 using namespace cv;
 
@@ -33,10 +46,10 @@ using namespace cv;
 #include <arm_neon.h>
 #endif // __ARM_NEON
 
-static Yolo *g_yolo = nullptr;
-static SCRFD *g_scrfd = nullptr;
-static EmotionRecognition *g_emotion = nullptr;
-static DeafRecognition *g_deaf = nullptr;
+static Yolo *g_yolo = 0;
+static SCRFD *g_scrfd = 0;
+static EmotionRecognition *g_emotion = 0;
+static DeafRecognition *g_deaf = 0;
 static ncnn::Mutex lock;
 
 
@@ -53,27 +66,22 @@ public:
 void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
     {
         ncnn::MutexLockGuard g(lock);
-        if (g_yolo && g_scrfd && g_deaf && g_emotion) {
-            g_yolo->detect(rgb, objects);
-            g_scrfd->detect(rgb, faceObjects);
-            scoreEmotions.clear();
+        if (g_yolo && g_deaf) {
             scoreDeafs.clear();
-            if (!faceObjects.empty()) {
-                g_emotion->predict(rgb, faceObjects[0], scoreEmotions);
-            }
-
+            g_yolo->detect(rgb, objects);
             if (!objects.empty()) {
                 g_deaf->predict(rgb, objects[0], scoreDeafs);
+                g_deaf->draw(rgb, objects[0], scoreDeafs);
+            }
+        }
+        if (g_scrfd && g_emotion) {
+            scoreEmotions.clear();
+            g_scrfd->detect(rgb, faceObjects);
+            if (!faceObjects.empty()) {
+                g_emotion->predict(rgb, faceObjects[0], scoreEmotions);
+                g_emotion->draw(rgb, faceObjects[0], scoreEmotions);
             }
 
-
-            for (auto &faceObject: faceObjects) {
-                g_emotion->draw(rgb, faceObject, scoreEmotions);
-            }
-            for (auto &object: objects) {
-                g_deaf->draw(rgb, object, scoreDeafs);
-            }
-            g_yolo->draw(rgb, objects);
         }
     }
 }
@@ -92,16 +100,14 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
     {
         ncnn::MutexLockGuard g(lock);
         delete g_yolo;
-        g_yolo = nullptr;
-
+        g_yolo = 0;
         delete g_scrfd;
-        g_scrfd = nullptr;
+        g_scrfd = 0;
 
         delete g_emotion;
-        g_emotion = nullptr;
-
+        g_emotion = 0;
         delete g_deaf;
-        g_deaf = nullptr;
+        g_deaf = 0;
     }
 
     delete g_camera;
@@ -110,11 +116,11 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
 
 
 extern "C" jboolean
-Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_loadModel(JNIEnv *env, jobject thiz,
-                                                        jobject assetManager) {
+Java_com_tondz_camdiec_NguoiMuSDK_loadModel(JNIEnv *env, jobject thiz, jobject assetManager) {
     AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
     ncnn::MutexLockGuard g(lock);
-    const char *modeltype = "s";
+    const char *modeltype = "n";
+
     const float mean_vals[][3] =
             {
                     {103.53f, 116.28f, 123.675f},
@@ -130,31 +136,25 @@ Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_loadModel(JNIEnv *env, jobject thi
     int target_size = 640;
     if (!g_yolo) {
         g_yolo = new Yolo;
-        g_yolo->load(mgr, modeltype, target_size, mean_vals[0],
-                     norm_vals[0], false);
     }
+    g_yolo->load(mgr, modeltype, target_size, mean_vals[0],
+                 norm_vals[0], false);
 
-    if (!g_scrfd) {
+    if (!g_scrfd)
         g_scrfd = new SCRFD;
-        g_scrfd->load(mgr, modeltype, false);
-    }
+    g_scrfd->load(mgr, modeltype, false);
 
-    if (!g_emotion) {
+    if (!g_emotion)
         g_emotion = new EmotionRecognition;
-        g_emotion->load(mgr);
-    }
+    g_emotion->load(mgr);
 
-
-    if (!g_deaf) {
+    if (!g_deaf)
         g_deaf = new DeafRecognition;
-        g_deaf->load(mgr);
-    }
-
-
+    g_deaf->load(mgr);
     return JNI_TRUE;
 }
 extern "C" jboolean
-Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_openCamera(JNIEnv *env, jobject thiz, jint facing) {
+Java_com_tondz_camdiec_NguoiMuSDK_openCamera(JNIEnv *env, jobject thiz, jint facing) {
     if (facing < 0 || facing > 1)
         return JNI_FALSE;
     g_camera->open((int) facing);
@@ -163,15 +163,14 @@ Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_openCamera(JNIEnv *env, jobject th
 }
 
 extern "C" jboolean
-Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_closeCamera(JNIEnv *env, jobject thiz) {
+Java_com_tondz_camdiec_NguoiMuSDK_closeCamera(JNIEnv *env, jobject thiz) {
     g_camera->close();
 
     return JNI_TRUE;
 }
 
 extern "C" jboolean
-Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_setOutputWindow(JNIEnv *env, jobject thiz,
-                                                              jobject surface) {
+Java_com_tondz_camdiec_NguoiMuSDK_setOutputWindow(JNIEnv *env, jobject thiz, jobject surface) {
     ANativeWindow *win = ANativeWindow_fromSurface(env, surface);
     g_camera->set_window(win);
     return JNI_TRUE;
@@ -181,7 +180,7 @@ Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_setOutputWindow(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_getEmotion(JNIEnv *env, jobject thiz) {
+Java_com_tondz_camdiec_NguoiMuSDK_getEmotion(JNIEnv *env, jobject thiz) {
     if (!scoreEmotions.empty()) {
         std::ostringstream oss;
 
@@ -202,7 +201,7 @@ Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_getEmotion(JNIEnv *env, jobject th
 }
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_getDeaf(JNIEnv *env, jobject thiz) {
+Java_com_tondz_camdiec_NguoiMuSDK_getDeaf(JNIEnv *env, jobject thiz) {
     if (!scoreDeafs.empty()) {
         std::ostringstream oss;
 
@@ -221,3 +220,6 @@ Java_com_tondz_phanmemhotrocamdiec_NguoiMuSDK_getDeaf(JNIEnv *env, jobject thiz)
     }
     return env->NewStringUTF("");
 }
+
+
+

@@ -1,6 +1,7 @@
-package com.tondz.phanmemhotrocamdiec;
+package com.tondz.camdiec;
 
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.view.Surface;
 
 import java.util.List;
@@ -13,9 +14,9 @@ public class NguoiMuSDK {
     public native boolean closeCamera();
 
     public native boolean setOutputWindow(Surface surface);
-
     public native String getEmotion();
     public native String getDeaf();
+
     static {
         System.loadLibrary("nguoimusdk");
     }

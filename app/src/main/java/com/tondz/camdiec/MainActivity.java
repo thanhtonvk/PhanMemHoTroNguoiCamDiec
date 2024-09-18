@@ -1,10 +1,11 @@
-package com.tondz.phanmemhotrocamdiec;
+package com.tondz.camdiec;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -12,18 +13,18 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.tondz.camdiec.databinding.ActivityMainBinding;
 
-import com.tondz.phanmemhotrocamdiec.databinding.ActivityMainBinding;
-
-import java.util.Locale;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
     private static final int REQUEST_CAMERA = 1345;
     ActivityMainBinding binding;
     NguoiMuSDK nguoiMuSDK = new NguoiMuSDK();
     private int facing = 0;
-    TextToSpeech textToSpeech;
     private boolean canPlaySound = true;
     Handler handler;
     Runnable runnable;
@@ -57,46 +58,15 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 if (!deafScore.isEmpty() && !emotionScore.isEmpty()) {
                     String emotion = getEmotion(emotionScore);
                     String deaf = getDeaf(deafScore);
-                    int source = 0;
-                    if (emotion.equalsIgnoreCase("sợ") && deaf.equalsIgnoreCase("sợ")) {
-                        source = R.raw.so;
-                    }
-                    if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("rất vui được gặp bạn")) {
-                        source = R.raw.rat_vui_duoc_gap_ban;
-                    }
-                    if (emotion.equalsIgnoreCase("tức giận") && deaf.equalsIgnoreCase("không thích")) {
-                        source = R.raw.khong_thich;
-                    }
-                    if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("cảm ơn")) {
-                        source = R.raw.cam_on;
-                    }
-                    if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("khoẻ")) {
-                        source = R.raw.khoe;
-                    }
-                    if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("thích")) {
-                        source = R.raw.thich;
-                    }
-                    if (emotion.equalsIgnoreCase("buồn") && deaf.equalsIgnoreCase("xin lỗi")) {
-                        source = R.raw.xin_loi;
-                    }
-                    if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("hẹn gặp lại")) {
-                        source = R.raw.hen_gap_lai;
-                    }
-                    if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("xin chào")) {
-                        source = R.raw.xin_chao;
-                    }
-                    if (emotion.equalsIgnoreCase("buồn") && deaf.equalsIgnoreCase("tạm biệt")) {
-                        source = R.raw.tam_biet;
-                    }
-                    if (canPlaySound) {
-                        if (source != 0) {
-                            mediaPlayer = MediaPlayer.create(this, source);
-                            mediaPlayer.start();
-                            canPlaySound = false;
-                            handler.postDelayed(runnable, 3000);
-                        }
+                    int source = getSource(emotion, deaf);
 
+                    if (canPlaySound && source != 0) {
+                        mediaPlayer = MediaPlayer.create(this, source);
+                        mediaPlayer.start();
+                        canPlaySound = false;
+                        handler.postDelayed(runnable, 1000);
                     }
+
 
                 }
                 try {
@@ -108,8 +78,34 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }).start();
     }
 
+    private static int getSource(String emotion, String deaf) {
+        int source = 0;
+        if (emotion.equalsIgnoreCase("sợ") && deaf.equalsIgnoreCase("sợ")) {
+            source = R.raw.so;
+        } else if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("rất vui được gặp bạn")) {
+            source = R.raw.rat_vui_duoc_gap_ban;
+        } else if (emotion.equalsIgnoreCase("tức giận") && deaf.equalsIgnoreCase("không thích")) {
+            source = R.raw.khong_thich;
+        } else if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("cảm ơn")) {
+            source = R.raw.cam_on;
+        } else if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("khoẻ")) {
+            source = R.raw.khoe;
+        } else if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("thích")) {
+            source = R.raw.thich;
+        } else if (emotion.equalsIgnoreCase("buồn") && deaf.equalsIgnoreCase("xin lỗi")) {
+            source = R.raw.xin_loi;
+        } else if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("hẹn gặp lại")) {
+            source = R.raw.hen_gap_lai;
+        } else if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("xin chào")) {
+            source = R.raw.xin_chao;
+        } else if (emotion.equalsIgnoreCase("buồn") && deaf.equalsIgnoreCase("tạm biệt")) {
+            source = R.raw.tam_biet;
+        }
+        return source;
+    }
+
     private void onClick() {
-        binding.btnFlip.setOnClickListener(new View.OnClickListener() {
+        binding.btnChangeCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int new_facing = 1 - facing;
@@ -153,14 +149,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         binding.cameraview.getHolder().setFormat(PixelFormat.RGBA_8888);
         binding.cameraview.getHolder().addCallback(this);
-        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int i) {
-                if (i != TextToSpeech.ERROR) {
-                    textToSpeech.setLanguage(Locale.forLanguageTag("vi-VN"));
-                }
-            }
-        });
     }
 
     private void reload() {
@@ -170,10 +158,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         } else {
             Log.e("NhanDienNguoiThanActivity", "yolov8ncnn loadModel ok");
         }
-    }
-
-    private void speakVoice(String noiDung) {
-        textToSpeech.speak(noiDung, TextToSpeech.QUEUE_FLUSH, null);
     }
 
     @Override
@@ -188,12 +172,14 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-        nguoiMuSDK.closeCamera();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA);
+        }
         nguoiMuSDK.openCamera(facing);
     }
 

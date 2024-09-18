@@ -8,7 +8,7 @@ find_package(OpenCV REQUIRED core imgproc highgui)
 set(ncnn_DIR ${CMAKE_SOURCE_DIR}/ncnn-20230517-android-vulkan/${ANDROID_ABI}/lib/cmake/ncnn)
 find_package(ncnn REQUIRED)
 
-add_library(nguoimusdk SHARED nguoimusdk.cpp yolo.cpp ndkcamera.cpp deaf_recognition.cpp scrfd.cpp emotion_recognition.cpp)
+add_library(nguoimusdk SHARED nguoimusdk.cpp yolo.cpp ndkcamera.cpp scrfd.cpp emotion_recognition.cpp deaf_recognition.cpp)
 
 target_link_libraries(nguoimusdk ncnn ${OpenCV_LIBS} camera2ndk mediandk)
 

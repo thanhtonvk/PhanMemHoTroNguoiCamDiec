@@ -7,15 +7,26 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+
     <SurfaceView
         android:id="@+id/cameraview"
         android:layout_width="fill_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="fill_parent" />
 
-    <ImageView
-        android:id="@+id/btnFlip"
-        android:layout_width="wrap_content"
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/baseline_flip_camera_android_24" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnChangeCamera"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Đổi camera" />
+
+    </LinearLayout>
+
 
 </RelativeLayout>

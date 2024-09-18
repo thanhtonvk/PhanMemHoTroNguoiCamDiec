@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.tondz.phanmemhotrocamdiec"
+    namespace = "com.tondz.camdiec"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.tondz.phanmemhotrocamdiec"
+        applicationId = "com.tondz.camdiec"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

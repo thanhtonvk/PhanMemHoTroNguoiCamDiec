@@ -13,9 +13,9 @@ public:
 
     int load(AAssetManager *mgr);
 
-    int predict(cv::Mat src, Object &object, std::vector<float> &result);
+    int predict(const cv::Mat& src, Object &object, std::vector<float> &result);
 
-    int draw(cv::Mat &rgb, Object &object, std::vector<float> &result);
+    static int draw(cv::Mat &rgb, Object &object, std::vector<float> &result);
 
 private:
     ncnn::Net model;

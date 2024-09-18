@@ -13,20 +13,22 @@ int DeafRecognition::load(AAssetManager *mgr) {
     ncnn::set_omp_num_threads(ncnn::get_big_cpu_count());
     model.opt = ncnn::Option();
     model.opt.num_threads = ncnn::get_big_cpu_count();
-    std::string parampath = "cam_diec.param";
-    std::string modelpath = "cam_diec.bin";
-    model.load_param(mgr, parampath.c_str());
-    model.load_model(mgr, modelpath.c_str());
+    char parampath[256];
+    char modelpath[256];
+    sprintf(parampath, "cam_diec.param");
+    sprintf(modelpath, "cam_diec.bin");
+    model.load_param(mgr, parampath);
+    model.load_model(mgr, modelpath);
+
     return 0;
 }
 
-int DeafRecognition::predict(cv::Mat src, Object &object, std::vector<float> &result) {
-    cv::Rect newRect = object.rect;
-    if (newRect.x >= 0 && newRect.y >= 0 &&
-        newRect.width > 0 && newRect.height > 0 &&
-        newRect.x + newRect.width <= src.cols &&
-        newRect.y + newRect.height <= src.rows) {
-        cv::Mat croppedImage = src(newRect);
+int DeafRecognition::predict(const cv::Mat &src, Object &object, std::vector<float> &result) {
+    if (object.rect.x >= 0 && object.rect.y >= 0 &&
+        object.rect.width > 0 && object.rect.height > 0 &&
+        object.rect.x + object.rect.width <= src.cols &&
+        object.rect.y + object.rect.height <= src.rows) {
+        cv::Mat croppedImage = src(object.rect);
         ncnn::Mat in_net = ncnn::Mat::from_pixels_resize(croppedImage.clone().data,
                                                          ncnn::Mat::PIXEL_RGB,
                                                          croppedImage.cols, croppedImage.rows, 128,
@@ -56,16 +58,19 @@ int DeafRecognition::draw(cv::Mat &rgb, Object &object, std::vector<float> &resu
     };
 
     if (!result.empty()) {
-        int index = std::distance(result.begin(), std::max_element(result.begin(), result.end()));
-        float scoreMax = result[index];
-
+        int index = 0;
+        float scoreMax = 0;
+        for (int i = 0; i < result.size(); i++) {
+            if (scoreMax < result[i]) {
+                scoreMax = result[i];
+                index = i;
+            }
+        }
         if (scoreMax >= 0.9) {
-            const Object &obj = object;
-            cv::Rect newRect = obj.rect;
             const unsigned char *color = colors[0];
             cv::Scalar cc(color[0], color[1], color[2]);
 
-            cv::rectangle(rgb, newRect, cc, 2);
+            cv::rectangle(rgb, object.rect, cc, 2);
 
             std::string text = cv::format("%s %.1f%%", class_names[index], scoreMax * 100);
 
@@ -73,8 +78,8 @@ int DeafRecognition::draw(cv::Mat &rgb, Object &object, std::vector<float> &resu
             cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1,
                                                   &baseLine);
 
-            int x = newRect.x;
-            int y = newRect.y - label_size.height - baseLine;
+            int x = object.rect.x;
+            int y = object.rect.y - label_size.height - baseLine;
             y = std::max(y, 0);
             x = std::min(x, rgb.cols - label_size.width);
 

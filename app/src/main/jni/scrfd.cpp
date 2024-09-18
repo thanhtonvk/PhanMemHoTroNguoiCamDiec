@@ -228,8 +228,8 @@ int SCRFD::load(const char* modeltype, bool use_gpu)
 
     char parampath[256];
     char modelpath[256];
-    sprintf(parampath, "scrfd.param", modeltype);
-    sprintf(modelpath, "scrfd.bin", modeltype);
+    sprintf(parampath, "scrfd_2.5g_kps-opt2.param", modeltype);
+    sprintf(modelpath, "scrfd_2.5g_kps-opt2.bin", modeltype);
 
     scrfd.load_param(parampath);
     scrfd.load_model(modelpath);
@@ -254,8 +254,8 @@ int SCRFD::load(AAssetManager* mgr, const char* modeltype, bool use_gpu)
 
     char parampath[256];
     char modelpath[256];
-    sprintf(parampath, "scrfd.param", modeltype);
-    sprintf(modelpath, "scrfd.bin", modeltype);
+    sprintf(parampath, "scrfd_2.5g_kps-opt2.param", modeltype);
+    sprintf(modelpath, "scrfd_2.5g_kps-opt2.bin", modeltype);
 
     scrfd.load_param(mgr, parampath);
     scrfd.load_model(mgr, modelpath);
@@ -436,20 +436,7 @@ int SCRFD::draw(cv::Mat& rgb, const std::vector<FaceObject>& faceobjects)
     for (size_t i = 0; i < faceobjects.size(); i++)
     {
         const FaceObject& obj = faceobjects[i];
-
-//         fprintf(stderr, "%.5f at %.2f %.2f %.2f x %.2f\n", obj.prob,
-//                 obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
-
         cv::rectangle(rgb, obj.rect, cv::Scalar(0, 255, 0));
-
-
-        cv::circle(rgb, obj.landmark[0], 2, cv::Scalar(255, 255, 0), -1);
-        cv::circle(rgb, obj.landmark[1], 2, cv::Scalar(255, 255, 0), -1);
-        cv::circle(rgb, obj.landmark[2], 2, cv::Scalar(255, 255, 0), -1);
-        cv::circle(rgb, obj.landmark[3], 2, cv::Scalar(255, 255, 0), -1);
-        cv::circle(rgb, obj.landmark[4], 2, cv::Scalar(255, 255, 0), -1);
-
-
         char text[256];
         sprintf(text, "%.1f%%", obj.prob * 100);
 

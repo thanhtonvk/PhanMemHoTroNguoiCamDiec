@@ -1,4 +1,4 @@
-package com.tondz.phanmemhotrocamdiec;
+package com.tondz.camdiec;
 
 public class Common {
     public static String[] classNames = {

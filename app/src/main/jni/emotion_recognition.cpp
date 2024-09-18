@@ -10,7 +10,6 @@
 #include <opencv2/opencv.hpp>
 
 
-
 cv::Rect resizeImage(FaceObject faceobject) {
     // Get the original coordinates
     int left = faceobject.rect.x;
@@ -28,7 +27,7 @@ cv::Rect resizeImage(FaceObject faceobject) {
     newTop = std::max(0, newTop);
 
 
-    return cv::Rect(newLeft, newTop, maxSize, maxSize);
+    return {newLeft, newTop, maxSize, maxSize};
 }
 
 EmotionRecognition::EmotionRecognition() {
@@ -51,7 +50,7 @@ int EmotionRecognition::load(AAssetManager *mgr) {
     return 0;
 }
 
-int EmotionRecognition::predict(cv::Mat src, FaceObject &faceobject,
+int EmotionRecognition::predict(const cv::Mat &src, FaceObject &faceobject,
                                 std::vector<float> &result) {
     cv::Rect newRect = resizeImage(faceobject);
     if (newRect.x >= 0 && newRect.y >= 0 &&
@@ -93,11 +92,11 @@ int EmotionRecognition::draw(cv::Mat &rgb, FaceObject &faceobject, std::vector<f
         }
     }
     static const unsigned char colors[1][3] = {
-            {54,  67,  244},
+            {54, 67, 244},
     };
 
     int color_index = 0;
-
+//    __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "check %d", index);
 
     const FaceObject &obj = faceobject;
     cv::Rect newRect = resizeImage(obj);
