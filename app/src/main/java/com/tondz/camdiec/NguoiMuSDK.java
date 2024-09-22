@@ -15,7 +15,6 @@ public class NguoiMuSDK {
 
     public native boolean setOutputWindow(Surface surface);
     public native String getEmotion();
-    public native String getDeaf();
 
     static {
         System.loadLibrary("nguoimusdk");

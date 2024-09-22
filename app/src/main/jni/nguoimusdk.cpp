@@ -58,6 +58,56 @@ static std::vector<FaceObject> faceObjects;
 static std::vector<float> scoreEmotions;
 static std::vector<float> scoreDeafs;
 
+static int draw_fps(cv::Mat &rgb) {
+    // resolve moving average
+    float avg_fps = 0.f;
+    {
+        static double t0 = 0.f;
+        static float fps_history[10] = {0.f};
+
+        double t1 = ncnn::get_current_time();
+        if (t0 == 0.f) {
+            t0 = t1;
+            return 0;
+        }
+
+        float fps = 1000.f / (t1 - t0);
+        t0 = t1;
+
+        for (int i = 9; i >= 1; i--) {
+            fps_history[i] = fps_history[i - 1];
+        }
+        fps_history[0] = fps;
+
+        if (fps_history[9] == 0.f) {
+            return 0;
+        }
+
+        for (int i = 0; i < 10; i++) {
+            avg_fps += fps_history[i];
+        }
+        avg_fps /= 10.f;
+    }
+
+    char text[32];
+    sprintf(text, "FPS=%.2f", avg_fps);
+
+    int baseLine = 0;
+    cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+
+    int y = 0;
+    int x = rgb.cols - label_size.width;
+
+    cv::rectangle(rgb, cv::Rect(cv::Point(x, y),
+                                cv::Size(label_size.width, label_size.height + baseLine)),
+                  cv::Scalar(255, 255, 255), -1);
+
+    cv::putText(rgb, text, cv::Point(x, y + label_size.height),
+                cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+
+    return 0;
+}
+
 class MyNdkCamera : public NdkCameraWindow {
 public:
     virtual void on_image_render(cv::Mat &rgb) const;
@@ -66,24 +116,21 @@ public:
 void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
     {
         ncnn::MutexLockGuard g(lock);
-        if (g_yolo && g_deaf) {
-            scoreDeafs.clear();
+        if (g_yolo && g_deaf && g_scrfd && g_emotion) {
+
             g_yolo->detect(rgb, objects);
-            if (!objects.empty()) {
+            g_scrfd->detect(rgb, faceObjects);
+            if (!objects.empty() && !faceObjects.empty()) {
+                scoreDeafs.clear();
+                scoreEmotions.clear();
                 g_deaf->predict(rgb, objects[0], scoreDeafs);
+                g_emotion->predict(rgb, faceObjects[0], scoreEmotions);
+                g_emotion->draw(rgb, faceObjects[0], scoreEmotions);
                 g_deaf->draw(rgb, objects[0], scoreDeafs);
             }
         }
-        if (g_scrfd && g_emotion) {
-            scoreEmotions.clear();
-            g_scrfd->detect(rgb, faceObjects);
-            if (!faceObjects.empty()) {
-                g_emotion->predict(rgb, faceObjects[0], scoreEmotions);
-                g_emotion->draw(rgb, faceObjects[0], scoreEmotions);
-            }
-
-        }
     }
+    draw_fps(rgb);
 }
 
 static MyNdkCamera *g_camera = 0;
@@ -178,12 +225,13 @@ Java_com_tondz_camdiec_NguoiMuSDK_setOutputWindow(JNIEnv *env, jobject thiz, job
 
 }
 
+
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_tondz_camdiec_NguoiMuSDK_getEmotion(JNIEnv *env, jobject thiz) {
-    if (!scoreEmotions.empty()) {
-        std::ostringstream oss;
 
+    if (!scoreEmotions.empty() && !scoreDeafs.empty()) {
+        std::ostringstream oss;
         // Convert each element to string and add it to the stream
         for (size_t i = 0; i < scoreEmotions.size(); ++i) {
             if (i != 0) {
@@ -191,21 +239,8 @@ Java_com_tondz_camdiec_NguoiMuSDK_getEmotion(JNIEnv *env, jobject thiz) {
             }
             oss << scoreEmotions[i];
         }
+        oss << ";";
 
-        // Convert the stream to a string
-        std::string embeddingStr = oss.str();
-        scoreEmotions.clear();
-        return env->NewStringUTF(embeddingStr.c_str());
-    }
-    return env->NewStringUTF("");
-}
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_tondz_camdiec_NguoiMuSDK_getDeaf(JNIEnv *env, jobject thiz) {
-    if (!scoreDeafs.empty()) {
-        std::ostringstream oss;
-
-        // Convert each element to string and add it to the stream
         for (size_t i = 0; i < scoreDeafs.size(); ++i) {
             if (i != 0) {
                 oss << ",";  // Add a separator between elements
@@ -213,8 +248,9 @@ Java_com_tondz_camdiec_NguoiMuSDK_getDeaf(JNIEnv *env, jobject thiz) {
             oss << scoreDeafs[i];
         }
 
-        // Convert the stream to a string
+
         std::string embeddingStr = oss.str();
+        scoreEmotions.clear();
         scoreDeafs.clear();
         return env->NewStringUTF(embeddingStr.c_str());
     }

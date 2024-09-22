@@ -2,10 +2,11 @@ package com.tondz.camdiec;
 
 public class Common {
     public static String[] classNames = {
-            "cảm ơn", "hẹn gặp lại", "khoẻ", "không thích", "rất vui được gặp bạn", "sợ", "tạm biệt",
-            "thích", "xin chào", "xin lỗi"
+            "cam on", "hen gap lai", "khoe", "khong thich", "rat vui duoc gap ban", "so", "tam biet",
+            "thich", "xin chao", "xin loi"
     };
     public static String[] emotionClasses = {
-            "tức giận", "ghê tởm", "sợ", "vui vẻ", "buồn", "bất ngờ", "tự nhiên", "khinh miệt"
+            "tuc gian", "ghe tom", "so", "vui ve", "buon", "bat ngo", "tu nhien", "khinh miet"
     };
+
 }

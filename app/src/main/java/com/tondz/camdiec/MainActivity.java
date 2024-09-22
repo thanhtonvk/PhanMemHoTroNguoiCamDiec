@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         init();
         onClick();
         reload();
+
         handler = new Handler();
         runnable = new Runnable() {
             @Override
@@ -53,24 +54,23 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private void getObject() {
         new Thread(() -> {
             while (true) {
-                String deafScore = nguoiMuSDK.getDeaf();
-                String emotionScore = nguoiMuSDK.getEmotion();
-                if (!deafScore.isEmpty() && !emotionScore.isEmpty()) {
+                String emotionResult = nguoiMuSDK.getEmotion();
+                if (!emotionResult.isEmpty()) {
+                    String emotionScore = emotionResult.split(";")[0];
+                    String deafScore = emotionResult.split(";")[1];
                     String emotion = getEmotion(emotionScore);
                     String deaf = getDeaf(deafScore);
                     int source = getSource(emotion, deaf);
-
-                    if (canPlaySound && source != 0) {
+                    if (source != 0 && canPlaySound) {
+                        Log.e("TAG", "getObject: " + emotion + " " + deaf);
                         mediaPlayer = MediaPlayer.create(this, source);
                         mediaPlayer.start();
                         canPlaySound = false;
-                        handler.postDelayed(runnable, 1000);
+                        handler.postDelayed(runnable, 2000);
                     }
-
-
                 }
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(30);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -79,28 +79,30 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     }
 
     private static int getSource(String emotion, String deaf) {
+        Log.e("TAG", "getSource: " + emotion + deaf);
         int source = 0;
-        if (emotion.equalsIgnoreCase("sợ") && deaf.equalsIgnoreCase("sợ")) {
+        if (emotion.equalsIgnoreCase("so") && deaf.equalsIgnoreCase("so")) {
             source = R.raw.so;
-        } else if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("rất vui được gặp bạn")) {
+        } else if (emotion.equalsIgnoreCase("vui ve") && deaf.equalsIgnoreCase("rat vui duoc gap ban")) {
             source = R.raw.rat_vui_duoc_gap_ban;
-        } else if (emotion.equalsIgnoreCase("tức giận") && deaf.equalsIgnoreCase("không thích")) {
+        } else if (emotion.equalsIgnoreCase("tuc gian") && deaf.equalsIgnoreCase("khong thich")) {
             source = R.raw.khong_thich;
-        } else if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("cảm ơn")) {
+        } else if (emotion.equalsIgnoreCase("vui ve") && deaf.equalsIgnoreCase("cam on")) {
             source = R.raw.cam_on;
-        } else if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("khoẻ")) {
+        } else if (emotion.equalsIgnoreCase("vui ve") && deaf.equalsIgnoreCase("khoe")) {
             source = R.raw.khoe;
-        } else if (emotion.equalsIgnoreCase("vui vẻ") && deaf.equalsIgnoreCase("thích")) {
+        } else if (emotion.equalsIgnoreCase("vui ve") && deaf.equalsIgnoreCase("thich")) {
             source = R.raw.thich;
-        } else if (emotion.equalsIgnoreCase("buồn") && deaf.equalsIgnoreCase("xin lỗi")) {
+        } else if (emotion.equalsIgnoreCase("buon") && deaf.equalsIgnoreCase("xin loi")) {
             source = R.raw.xin_loi;
-        } else if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("hẹn gặp lại")) {
+        } else if (emotion.equalsIgnoreCase("tu nhien") && deaf.equalsIgnoreCase("hen gap lai")) {
             source = R.raw.hen_gap_lai;
-        } else if (emotion.equalsIgnoreCase("tự nhiên") && deaf.equalsIgnoreCase("xin chào")) {
+        } else if (emotion.equalsIgnoreCase("tu nhien") && deaf.equalsIgnoreCase("xin chao")) {
             source = R.raw.xin_chao;
-        } else if (emotion.equalsIgnoreCase("buồn") && deaf.equalsIgnoreCase("tạm biệt")) {
-            source = R.raw.tam_biet;
         }
+//        else if (emotion.equalsIgnoreCase("buon") && deaf.equalsIgnoreCase("tam biet")) {
+//            source = R.raw.tam_biet;
+//        }
         return source;
     }
 
@@ -128,7 +130,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 maxIdx = i;
             }
         }
+
         return Common.classNames[maxIdx];
+
     }
 
     private String getEmotion(String scoreEmotion) {
